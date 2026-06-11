@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=375, initial-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Путь инвестора — Альфа-Банк</title>
+  <style>
+    /* ================================================================
+   E-002  Onboarding Checklist  v2  (4 steps + finalizer)
+   2026-06-04
+   Все CSS/JS inline, нет внешних зависимостей.
+   ================================================================ */
+
+    /* ── Данные и диплинки вынесены в config.json (рядом с index.html) ─
+   config.json → collection.assets[] (акции шага 3, с диплинками на
+   карточку актива в нативе) + deeplinks.autopayment / app_store /
+   play_store. Пустые строки ("") заполняют Костя/owner до QA.
+   ─────────────────────────────────────────────────────────────── */
+
+    :root {
+      --c-primary: #EF3124;
+      --c-primary-dn: #D62A1F;
+      --c-bg: #F2F3F5;
+      --c-surface: #FFFFFF;
+      --c-text: rgba(3, 3, 6, .88);
+      --c-text-2: rgba(3, 3, 6, .55);
+      --c-text-3: rgba(3, 3, 6, .35);
+      --c-divider: rgba(3, 3, 6, .08);
+      --c-shadow-red: rgba(239, 49, 36, .12);
+      --r-card: 16px;
+      --r-btn: 12px;
+      --pad: 16px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--c-bg);
+      color: var(--c-text);
+      -webkit-user-select: none;
+      user-select: none;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    /* ── AppBar (чек-лист) ──────────────────────────────────────────── */
+    .appbar {
+      height: calc(56px + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: var(--c-surface);
+      display: flex;
+      align-items: center;
+      padding-left: 16px;
+      padding-right: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 0 var(--c-divider);
+    }
+
+    .appbar__title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--c-text);
+      margin-left: 44px;
+    }
+
+    .appbar__btn-close {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text);
+      flex-shrink: 0;
+    }
+
+    /* ── Offline banner ─────────────────────────────────────────────── */
+    .offline-banner {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      height: 44px;
+      background: rgba(239, 49, 36, .08);
+      border-bottom: 1px solid rgba(239, 49, 36, .20);
+      font-size: 13px;
+      color: var(--c-text);
+    }
+
+    .offline-banner.visible {
+      display: flex;
+    }
+
+    /* ── Progress ───────────────────────────────────────────────────── */
+    .progress-wrap {
+      padding: 12px var(--pad) 0;
+      background: var(--c-surface);
+    }
+
+    .progress-track {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--c-divider);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--c-primary);
+      width: 25%;
+      transition: width 300ms ease-in-out;
+    }
+
+    .progress-label {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--c-text-2);
+      padding-bottom: 12px;
+    }
+
+    /* ── Page header ────────────────────────────────────────────────── */
+    .page-header {
+      padding: 0 var(--pad) 12px;
+      background: var(--c-surface);
+    }
+
+    .page-header__title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      line-height: 1.2;
+    }
+
+    .page-header__subtitle {
+      font-size: 15px;
+      color: var(--c-text-2);
+      margin: 0;
+    }
+
+    /* ── Step cards ─────────────────────────────────────────────────── */
+    .steps-list {
+      padding: 8px var(--pad);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .step-card {
+      background: var(--c-surface);
+      border-radius: var(--r-card);
+      border: 1px solid var(--c-divider);
+      padding: 16px;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+      min-height: 64px;
+    }
+
+    .step-card--active {
+      border: 2px solid var(--c-primary);
+      box-shadow: 0 2px 8px var(--c-shadow-red);
+    }
+
+    .step-card__header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--c-text-3);
+      background: var(--c-divider);
+      transition: background 200ms ease;
+    }
+
+    .step-icon--active {
+      background: var(--c-primary);
+      color: #fff;
+    }
+
+    .step-icon--completed {
+      background: #0A8F3C;
+      color: #fff;
+    }
+
+    .step-card__meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .step-card__label {
+      font-size: 13px;
+      color: var(--c-text-3);
+      margin: 0 0 2px;
+    }
+
+    .step-card__title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .step-card__subtitle {
+      font-size: 13px;
+      color: var(--c-text-2);
+      margin: 3px 0 0;
+      line-height: 1.3;
+      display: none;
+    }
+
+    .step-card--completed .step-card__subtitle {
+      display: block;
+    }
+
+    .step-card__body {
+      font-size: 15px;
+      color: var(--c-text-2);
+      margin-top: 8px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 250ms ease-in-out, opacity 200ms ease;
+      opacity: 0;
+    }
+
+    .step-card--active .step-card__body {
+      max-height: 800px;
+      opacity: 1;
+    }
+
+    .step-card__cta {
+      margin-top: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .step-card--active .step-card__cta {
+      display: flex;
+    }
+
+    /* ── Тизер тикеров (шаг 3) ─────────────────────────────────────── */
+    .ticker-teaser {
+      padding: 10px 0 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ticker-chip {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 16px;
+      background: var(--c-divider);
+      color: var(--c-text);
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-caption {
+      font-size: 13px;
+      color: var(--c-text-2);
+      width: 100%;
+    }
+
+    /* ── Buttons ────────────────────────────────────────────────────── */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      border-radius: var(--r-btn);
+      font-size: 16px;
+      font-weight: 600;
+      transition: opacity 120ms ease, background 120ms ease;
+      min-height: 48px;
+      padding: 12px 16px;
+      text-decoration: none;
+    }
+
+    .btn:active {
+      opacity: .82;
+    }
+
+    .btn--primary {
+      background: var(--c-primary);
+      color: #fff;
+    }
+
+    .btn--primary:active {
+      background: var(--c-primary-dn);
+      opacity: 1;
+    }
+
+    .btn--secondary {
+      background: transparent;
+      color: var(--c-text);
+      border: 1px solid rgba(3, 3, 6, .20);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* ── Disclaimer / footer ────────────────────────────────────────── */
+    .disclaimer {
+      padding: 12px var(--pad) calc(32px + var(--safe-bottom));
+      font-size: 12px;
+      color: var(--c-text-3);
+      line-height: 1.4;
+    }
+
+    /* ── Skeleton ───────────────────────────────────────────────────── */
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #F2F3F5 25%, #E8E8E8 50%, #F2F3F5 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s linear infinite;
+      border-radius: 8px;
+    }
+
+    .skeleton-card {
+      height: 72px;
+      border-radius: var(--r-card);
+      margin: 0 var(--pad) 8px;
+    }
+
+    .content-wrap {
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .content-wrap.ready {
+      opacity: 1;
+    }
+
+    /* ── Small screen ───────────────────────────────────────────────── */
+    @media (max-width: 320px) {
+      :root {
+        --pad: 12px;
+      }
+
+      .page-header__title {
+        font-size: 20px;
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+   ПОД-ЭКРАН (slide-in overlay — шаг 2 статья, шаг 3 подборка)
+   ════════════════════════════════════════════════════════════════ */
+    .sub-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--c-bg);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 250ms ease;
+      overflow: hidden;
+    }
+
+    .sub-screen.open {
+      transform: translateX(0);
+    }
+
+    .sub-appbar {
+      height: calc(56px + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: var(--c-surface);
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      padding-right: 16px;
+      border-bottom: 1px solid var(--c-divider);
+      flex-shrink: 0;
+    }
+
+    .sub-appbar__back {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text);
+      flex-shrink: 0;
+    }
+
+    .sub-appbar__title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--c-text);
+      margin-right: 44px;
+    }
+
+    .sub-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 16px var(--pad);
+      padding-bottom: calc(80px + 16px);
+      /* оставляем место под sticky footer */
+    }
+
+    .sub-footer {
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      padding: 12px var(--pad) calc(16px + var(--safe-bottom));
+      background: var(--c-surface);
+      border-top: 1px solid var(--c-divider);
+    }
+
+    /* Контент статьи/подборки (будет заменён hard-coded HTML от owner) */
+    .content-placeholder {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--c-text-3);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Карточка актива (подборка шага 3) */
+    .asset-card {
+      background: var(--c-surface);
+      border-radius: var(--r-card);
+      padding: 16px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(3, 3, 6, .06);
+    }
+
+    .asset-card__row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .asset-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--c-primary);
+    }
+
+    .asset-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .asset-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .asset-ticker {
+      font-size: 13px;
+      color: var(--c-text-2);
+      margin-top: 1px;
+    }
+
+    .asset-price-col {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .asset-price {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .asset-change {
+      font-size: 13px;
+      margin-top: 1px;
+    }
+
+    .asset-change--up {
+      color: #0A8F3C;
+    }
+
+    .asset-change--down {
+      color: var(--c-primary);
+    }
+
+    .asset-desc {
+      font-size: 14px;
+      color: var(--c-text-2);
+      margin: 12px 0 0;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .asset-desc--expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+
+    .asset-toggle {
+      display: inline-block;
+      margin-top: 4px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 14px;
+      color: #2066CC;
+      cursor: pointer;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+
+    img.asset-logo {
+      object-fit: cover;
+    }
+
+    .collection-intro {
+      font-size: 14px;
+      color: var(--c-text-2);
+      line-height: 1.5;
+      margin: 0 0 16px;
+    }
+
+    .collection-intro p {
+      margin: 0 0 10px;
+    }
+
+    .collection-intro p:last-child {
+      margin-bottom: 0;
+    }
+
+    .collection-intro ul {
+      margin: 8px 0 10px;
+      padding-left: 20px;
+    }
+
+    .collection-intro li {
+      margin-bottom: 6px;
+    }
+
+    .collection-heading {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--c-text);
+      margin: 0 0 12px;
+      line-height: 1.3;
+    }
+
+    .sub-disclaimer {
+      font-size: 12px;
+      color: var(--c-text-3);
+      line-height: 1.4;
+      margin: 16px 0 0;
+    }
+
+    .sub-appbar__spacer {
+      width: 44px;
+      flex-shrink: 0;
+    }
+
+    .btn--buy {
+      background: #EBECEF;
+      color: var(--c-text);
+      font-weight: 600;
+    }
+
+    .btn--buy:active {
+      background: #E0E2E6;
+      opacity: 1;
+    }
+
+    /* Legal disclaimer (коллапсируемый — шаг 3) */
+    .legal-block {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--c-divider);
+    }
+
+    .legal-text {
+      font-size: 12px;
+      color: var(--c-text-3);
+      line-height: 1.45;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .legal-text--expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+
+    .legal-toggle {
+      display: inline-block;
+      margin-top: 4px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 12px;
+      color: #2066CC;
+      cursor: pointer;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+   СТАТЬЯ КУРСА (шаг 2 — Курс на инвестиции)
+   ════════════════════════════════════════════════════════════════ */
+    #articleContent {
+      background: var(--c-surface);
+    }
+
+    .article-hero {
+      margin: -16px calc(-1 * var(--pad)) 0;
+      display: block;
+      overflow: hidden;
+    }
+
+    .article-hero img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+
+    .article-meta {
+      margin: 16px 0 4px;
+      font-size: 13px;
+      color: var(--c-text-2);
+    }
+
+    .article-title {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 4px 0 16px;
+      color: var(--c-text);
+    }
+
+    .article-section-label {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 8px 0 10px;
+      color: var(--c-text);
+      display: block;
+    }
+
+    .article-h2 {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 24px 0 10px;
+      color: var(--c-text);
+    }
+
+    .article-h3 {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.3;
+      margin: 18px 0 6px;
+      color: var(--c-text);
+    }
+
+    .article-p {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--c-text);
+      margin: 0 0 12px;
+    }
+
+    .article-scenario {
+      background: var(--c-bg);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 4px 0 16px;
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--c-text);
+    }
+
+    .article-scenario ul {
+      margin: 8px 0 4px;
+      padding-left: 20px;
+    }
+
+    .article-scenario li {
+      margin-bottom: 6px;
+    }
+
+    .article-scenario p {
+      margin: 0 0 8px;
+    }
+
+    .article-scenario p:last-child {
+      margin-bottom: 0;
+    }
+
+    .article-chart {
+      margin: 8px 0 20px;
+    }
+
+    .article-chart img {
+      width: 100%;
+      display: block;
+      border-radius: 10px;
+    }
+
+    .article-badge {
+      font-size: 15px;
+      color: var(--c-text);
+      margin: 4px 0 14px;
+      display: block;
+    }
+
+    .article-quote {
+      background: #EDF2FF;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 8px 0 16px;
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--c-text);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+   ФИНАЛИЗАТОР (полноэкранный экран)
+   ════════════════════════════════════════════════════════════════ */
+    .finalizer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--c-surface);
+      z-index: 60;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+
+    .finalizer.visible {
+      display: flex;
+    }
+
+    .finalizer.shown {
+      opacity: 1;
+    }
+
+    .finalizer-appbar {
+      height: calc(56px + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: var(--c-surface);
+      display: flex;
+      align-items: center;
+      padding-left: 16px;
+      padding-right: 8px;
+      border-bottom: 1px solid var(--c-divider);
+      flex-shrink: 0;
+    }
+
+    .finalizer-appbar__title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .finalizer-appbar__close {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--c-text);
+      flex-shrink: 0;
+    }
+
+    .finalizer-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px var(--pad) calc(16px + var(--safe-bottom));
+      gap: 0;
+    }
+
+    .finalizer-icon {
+      margin-bottom: 20px;
+    }
+
+    .finalizer-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      line-height: 1.2;
+    }
+
+    .finalizer-body {
+      font-size: 15px;
+      color: var(--c-text-2);
+      margin: 0 0 28px;
+      line-height: 1.5;
+    }
+
+    .finalizer-ctas {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .finalizer-disclaimer {
+      padding: 16px var(--pad) calc(32px + var(--safe-bottom));
+      font-size: 12px;
+      color: var(--c-text-3);
+      line-height: 1.4;
+      text-align: center;
+    }
+  </style>
+  <!-- Google Analytics 4 (gtag.js) — канон GA-разметки (Майя). ID/код: 04.Sources/ga_ym.js -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-98GT8FHBZK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-98GT8FHBZK');
+  </script>
+  <!-- Яндекс.Метрика (счётчик 96171108) -->
+  <script type="text/javascript">
+    (function (m, e, t, r, i, k, a) {
+      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+      m[i].l = 1 * new Date();
+      for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+      k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+    })
+      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(96171108, "init", {
+      clickmap: true,
+      trackLinks: true,
+      accurateTrackBounce: true,
+      webvisor: true,
+      ecommerce: "dataLayer"
+    });
+  </script>
+</head>
+
+<body data-experiment="e002" data-variant="unknown">
+
+  <!-- ════════════════ ЧЕКЛИСТ ════════════════ -->
+
+  <header class="appbar">
+    <span class="appbar__title">Путь инвестора</span>
+  </header>
+
+  <div class="offline-banner" id="offlineBanner" role="alert">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"
+        stroke="#EF3124" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    Нет соединения. Попробуйте позже
+  </div>
+
+  <!-- Skeleton — 4 карточки, прогресс-бар уже 25% (шаг 1 предзаполнен) -->
+  <div id="skeleton">
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" style="width:25%;transition:none;"></div>
+      </div>
+      <div style="height:30px;"></div>
+    </div>
+    <div style="padding:0 16px 12px;background:#fff;">
+      <div class="skeleton" style="height:24px;width:70%;border-radius:6px;margin-bottom:8px;"></div>
+      <div class="skeleton" style="height:15px;width:90%;border-radius:4px;"></div>
+    </div>
+    <div class="skeleton skeleton-card" style="margin-top:8px;"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+  </div>
+
+  <div class="content-wrap" id="contentWrap">
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">Шаг 1 из 4</div>
+    </div>
+
+    <div class="page-header">
+      <h1 class="page-header__title" id="pageTitle">Один шаг уже позади</h1>
+      <p class="page-header__subtitle" id="pageSubtitle">До первой сделки — 3 шага</p>
+    </div>
+
+    <div class="steps-list">
+
+      <!-- Шаг 1 — предзаполнен, без CTA -->
+      <div class="step-card" id="step-card-1" data-step-card="1" data-state="completed">
+        <div class="step-card__header">
+          <div class="step-icon step-icon--completed" id="step-icon-1">
+            <!-- CHECK_SVG заменяется при рендере -->
+          </div>
+          <div class="step-card__meta">
+            <div class="step-card__label">Шаг 1</div>
+            <div class="step-card__title">Счёт открыт</div>
+            <div class="step-card__subtitle">Первый шаг уже сделан.</div>
+          </div>
+        </div>
+        <!-- тело и CTA отсутствуют — шаг без действия -->
+      </div>
+
+      <!-- Шаг 2 — статья -->
+      <div class="step-card" id="step-card-2" data-step-card="2" data-state="active">
+        <div class="step-card__header">
+          <div class="step-icon" id="step-icon-2">2</div>
+          <div class="step-card__meta">
+            <div class="step-card__label">Шаг 2</div>
+            <div class="step-card__title">Курс на инвестиции</div>
+            <div class="step-card__subtitle">Обучение пройдено.</div>
+          </div>
+        </div>
+        <div class="step-card__body">
+          Узнайте основы фондового рынка. Как работает биржа, что такое акции и облигации — всё, что нужно для первой
+          сделки.
+        </div>
+        <div class="step-card__cta" id="cta-2">
+          <!-- data-step="2" data-action="open_article" — Engineer расставляет обработчик -->
+          <button class="btn btn--primary" data-step="2" data-action="open_article"
+            onclick="openSubScreen('article')">Пройти обучение</button>
+        </div>
+      </div>
+
+      <!-- Шаг 3 — подборка (целевое действие) -->
+      <div class="step-card" id="step-card-3" data-step-card="3" data-state="locked">
+        <div class="step-card__header">
+          <div class="step-icon" id="step-icon-3">3</div>
+          <div class="step-card__meta">
+            <div class="step-card__label">Шаг 3</div>
+            <div class="step-card__title">Сделайте первую сделку</div>
+            <div class="step-card__subtitle">Сделка совершена. Актив в портфеле.</div>
+          </div>
+        </div>
+        <div class="step-card__body">
+          Выберите акцию из подборки и сделайте первую покупку. Акции для начинающих инвесторов — проверенный выбор.
+          Начать можно от 350 ₽.
+          <div class="ticker-teaser">
+            <span class="ticker-chip">Сбербанк</span>
+            <span class="ticker-chip">ЛУКОЙЛ</span>
+            <span class="ticker-chip">Яндекс</span>
+            <span class="ticker-caption">и другие акции</span>
+          </div>
+        </div>
+        <div class="step-card__cta" id="cta-3">
+          <!-- data-step="3" data-action="open_collection" — Engineer расставляет обработчик -->
+          <button class="btn btn--primary" data-step="3" data-action="open_collection"
+            onclick="openSubScreen('collection')">Посмотреть акции</button>
+        </div>
+      </div>
+
+      <!-- Шаг 4 — автопополнение, диплинк -->
+      <div class="step-card" id="step-card-4" data-step-card="4" data-state="locked">
+        <div class="step-card__header">
+          <div class="step-icon" id="step-icon-4">4</div>
+          <div class="step-card__meta">
+            <div class="step-card__label">Шаг 4</div>
+            <div class="step-card__title">Подключите автопополнение</div>
+            <div class="step-card__subtitle">Автопополнение подключено.</div>
+          </div>
+        </div>
+        <div class="step-card__body">
+          Подключите автопополнение и инвестируйте регулярно. Это первый шаг к долгосрочному портфелю.
+        </div>
+        <div class="step-card__cta" id="cta-4">
+          <!-- data-step="4" data-action="deeplink_autopayment" — Engineer расставляет обработчик -->
+          <button class="btn btn--primary" data-step="4" data-action="deeplink_autopayment"
+            onclick="handleStep4()">Подключить</button>
+        </div>
+      </div>
+
+    </div><!-- /steps-list -->
+  </div><!-- /content-wrap -->
+
+
+  <!-- ════════════════ ПОД-ЭКРАН: СТАТЬЯ (шаг 2) ════════════════ -->
+  <div class="sub-screen" id="subArticle" role="dialog" aria-modal="true" aria-hidden="true">
+
+    <div class="sub-appbar">
+      <button class="sub-appbar__back" aria-label="Назад" data-step="2" data-action="article_back_tap"
+        onclick="closeSubScreen('article', true)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+      <span class="sub-appbar__title">Курс на инвестиции</span>
+    </div>
+
+    <div class="sub-scroll" id="articleContent">
+
+      <!-- Шапка курса -->
+      <div class="article-hero">
+        <img src="/ghk_7930_1/kurs_header.jpg" alt="">
+      </div>
+
+      <!-- Заголовок -->
+      <h1 class="article-title">Курс на инвестиции</h1>
+
+      <!-- Раздел 1 -->
+      <strong class="article-section-label">Как спасти накопления от инфляции</strong>
+      <p class="article-p">Деньги нужны, чтобы их тратить. Это понятно. Но вдруг вы копите на что-то важное? Или тратите
+        меньше, чем зарабатываете? Что тогда происходит с оставшимися деньгами? Они обесцениваются. Потому что у денег
+        есть скрытый враг — инфляция. Она, как вода, медленно, но регулярно подтачивает ваши накопления.</p>
+      <p class="article-p"><strong>Инфляция</strong> — это процесс обесценивания денег, который сопровождается ростом
+        цен на товары и услуги. Из-за неё с каждым годом на одну и ту же сумму можно купить всё меньше. То есть реальная
+        стоимость денег падает.</p>
+
+      <!-- Сценарий -->
+      <div class="article-scenario">
+        <p>Допустим, в мае 2010 года вы решили отложить на будущее 50 000 рублей. И выбирали из трёх вариантов:</p>
+        <ul>
+          <li>Хранить дома. Это понятнее всего: деньги всегда при мне.</li>
+          <li>Открыть вклад в банке. Деньги застрахованы и приносят доход.</li>
+          <li>Купить акции. Например, ЛУКОЙЛа: компания большая, и бензин у неё хороший.</li>
+        </ul>
+        <p>Что бы вы ни выбрали, инфляция может размыть часть ваших сбережений. Главный вопрос — насколько это у неё
+          получится.</p>
+        <p>За последние 14 лет инфляция в России составила 158,72% (по данным Росстата с мая 2010 года по апрель 2024
+          года). А значит, мы можем проследить результат отложенных в 2010 году 50 000 рублей.</p>
+      </div>
+
+      <!-- График -->
+      <div class="article-chart">
+        <img src="/ghk_7930_1/kurs_chart.jpg" alt="Сравнение: Дома, Депозит, Акции — результат и реальная стоимость">
+      </div>
+
+      <!-- Раздел 2 -->
+      <h2 class="article-h2">Что это за суммы и почему такой результат</h2>
+
+      <h3 class="article-h3">Хранили дома</h3>
+      <p class="article-p">Хотя деньги вы не тратили, они обесценились — их реальная стоимость из-за инфляции
+        уменьшилась. То, что вы могли купить в 2010 году на 50 000 рублей, теперь уже не купишь. В реальности вы
+        сохранили только 19 326 рублей.</p>
+
+      <h3 class="article-h3">Открыли вклад</h3>
+      <p class="article-p">За эти годы ваши деньги заработали 108 704 рубля процентами. То есть начальная сумма
+        увеличилась более чем в три раза, до 158 704 рублей. Но из-за инфляции реальная стоимость ваших денег всего 61
+        341 рубль. За 14 лет прирост совсем небольшой.</p>
+
+      <h3 class="article-h3">Купили акции</h3>
+      <p class="article-p">Ваши 50 000 рублей, вложенные в акции ЛУКОЙЛа, тоже обесценились за эти годы. Но дивидендные
+        выплаты и рост стоимости самих акций перекрыли эти потери. Вы не просто сберегли свои накопления, но и увеличили
+        их. Как это работает? Рост цен на товары приносит дополнительную прибыль компаниям, и от этого их акции
+        дорожают.</p>
+
+      <p class="article-p">Инфляция есть в каждой стране, и для экономики она нормальное явление, это естественное
+        течение в финансовом океане. Но, чтобы инфляция оставалась умеренной, процесс нужно контролировать — этим
+        занимаются центральные банки.</p>
+      <p class="article-p">Бизнесу инфляция помогает больше зарабатывать, а обычному человеку, наоборот, мешает копить.
+        Значит, обойти инфляцию можно с помощью инвестиций в бизнес.</p>
+
+      <!-- Раздел 3 -->
+      <h2 class="article-h2">Во что можно инвестировать на бирже</h2>
+      <p class="article-p">Правильно выбранные инструменты не дадут раствориться вашим накоплениям. Акции, облигации и
+        паи биржевых фондов — самые популярные ценные бумаги, которые торгуются на бирже. Вот их главные особенности.
+      </p>
+
+      <h3 class="article-h3">Акции</h3>
+      <p class="article-p">Акция — ценная бумага, которая даёт право на часть бизнеса компании (эмитента). Это значит,
+        что владелец акции может голосовать на собраниях акционеров, рассчитывать на долю прибыли компании (дивиденды) и
+        на часть её имущества в случае ликвидации. А ещё акцию можно продать и получить прибыль, если бумага за это
+        время подорожала.</p>
+      <span class="article-badge">⬆️ Доход 🔴 Риск</span>
+
+      <h3 class="article-h3">Облигации</h3>
+      <p class="article-p">По сути, это долговая расписка с обязательством платить проценты (купоны). Покупатели
+        облигаций дают в долг тому, кто их выпустил (эмитенту), на определённый срок и зарабатывают на купонах.</p>
+      <span class="article-badge">➡️ Доход 🟢 Риск</span>
+
+      <h3 class="article-h3">Паи биржевых фондов</h3>
+      <p class="article-p">Биржевые фонды похожи на готовые наборы ценных бумаг: инвестиционные компании собирают
+        привлекательные активы в один фонд, делят его на доли (ценные бумаги фонда — паи) и продают их на бирже
+        инвесторам.</p>
+      <span class="article-badge">↗️ Доход 🟡 Риск</span>
+
+      <!-- Раздел 4 -->
+      <h2 class="article-h2">Сколько можно инвестировать</h2>
+      <p class="article-p">Начать инвестировать можно и с 10 рублей, купив, например, пай биржевого фонда. Но и доход
+        будет копеечный. Лучше начинать хотя бы с 10 000 рублей. На эти деньги можно выбрать уже несколько акций,
+        облигаций и паёв фондов. То есть собрать первый инвестиционный портфель.</p>
+      <p class="article-p">☝️ Конечно, хочется заработать побольше, но начать лучше с той суммы, о которой вы не будете
+        жалеть. Инвестиции не гарантируют получения дохода. Поэтому выбирайте надёжные инструменты и не рискуйте — как
+        начинающий капитан, который не выйдет в первый свой рейс в шторм.</p>
+      <p class="article-p">Будем честны: ценные бумаги не всегда дорожают и на время даже могут становиться убыточными.
+        Это нормально для рынка. Но постепенно акции хороших компаний восстанавливаются и снова растут.</p>
+
+      <!-- Блок-цитата -->
+      <div class="article-quote">
+        Главное — когда вы только начали инвестировать, не ждите быстрых результатов. Для этого нужно время. Разделите
+        деньги между разными активами, но предварительно разберитесь в их рисках и возможностях.
+      </div>
+
+    </div>
+
+    <div class="sub-footer">
+      <button class="btn btn--primary" data-step="2" data-action="article_back_tap"
+        onclick="closeSubScreen('article', true)">Следующий шаг</button>
+    </div>
+
+  </div>
+
+
+  <!-- ════════════════ ПОД-ЭКРАН: ПОДБОРКА (шаг 3) ════════════════ -->
+  <div class="sub-screen" id="subCollection" role="dialog" aria-modal="true" aria-hidden="true">
+
+    <div class="sub-appbar">
+      <!-- data-step="3" data-action="collection_back_tap" — Engineer расставляет обработчик -->
+      <button class="sub-appbar__back" aria-label="Назад" data-step="3" data-action="collection_back_tap"
+        onclick="closeSubScreen('collection', true)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+      <span class="sub-appbar__title">Акции для начинающих</span>
+    </div>
+
+    <div class="sub-scroll" id="collectionContent">
+      <!-- Карточки активов рендерит JS из config.json (collection.assets).
+         Owner редактирует данные акций в config.json, не здесь. -->
+      <div class="collection-intro" id="collectionIntro"></div>
+      <h3 class="collection-heading" id="collectionHeading" style="display:none;"></h3>
+      <div id="assetList">
+        <div class="content-placeholder">Загрузка подборки…</div>
+      </div>
+      <div id="legalBlock"></div>
+    </div><!-- /collectionContent -->
+
+    <div class="sub-footer">
+      <!-- data-step="3" data-action="collection_back_tap" — то же событие что и кнопка ← -->
+      <button class="btn btn--primary" data-step="3" data-action="collection_back_tap"
+        onclick="closeSubScreen('collection', true)">Следующий шаг</button>
+    </div>
+
+  </div>
+
+
+  <!-- ════════════════ ФИНАЛИЗАТОР ════════════════ -->
+  <div class="finalizer" id="finalizer" role="status" aria-live="polite">
+
+    <div class="finalizer-appbar">
+      <span class="finalizer-appbar__title">Готово</span>
+      <!--
+      UX TBD (Костя): крестик в AppBar финализатора.
+      Если closeWebView() технически возможен в этой точке — раскомментировать кнопку ниже.
+      Если нет — используется fallback-кнопка «Вернуться в приложение» внутри .finalizer-ctas.
+    -->
+      <!--
+    <button class="finalizer-appbar__close" aria-label="Закрыть"
+            data-action="close_webview_finalizer"
+            onclick="handleFinalizerClose()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    -->
+    </div>
+
+    <div class="finalizer-content">
+
+      <div class="finalizer-icon">
+        <!--
+        [гипотеза] Конкретный SVG-ассет согласовать с Designer после получения контента от owner.
+        Пока — стандартная звезда в красном круге.
+      -->
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="32" fill="rgba(239,49,36,.10)" />
+          <path d="M32 16l4.12 8.35L46 25.7l-7 6.5 1.65 9.14L32 37.03l-8.65 4.31L25 34.2l-7-6.5 9.88-1.35L32 16z"
+            fill="#EF3124" />
+        </svg>
+      </div>
+
+      <h2 class="finalizer-title">Вы инвестор!</h2>
+      <p class="finalizer-body">
+        Сделка совершена, автопополнение подключено.<br>
+        Дальше — ещё удобнее в Альфа-Инвестиции.
+      </p>
+
+      <div class="finalizer-ctas" id="finalizerCtas">
+        <!-- Кнопки вставляются через JS (UA-детекция iOS/Android) -->
+      </div>
+
+    </div><!-- /finalizer-content -->
+
+    <p class="finalizer-disclaimer">Не является индивидуальной инвестиционной рекомендацией.</p>
+
+  </div><!-- /finalizer -->
+
+
+  <!-- ════════════════ ВСТРОЕННЫЙ КОНФИГ ════════════════
+     Данные подборки и диплинки. Работает всегда (file://, offline, http).
+     На проде config.json (fetch) переопределяет этот блок — см. loadConfig().
+     Держите этот блок и config.json синхронными. -->
+  <script type="application/json" id="e002-config">
+{
+  "deeplinks": {
+    "autopayment": "",
+    "app_store": "",
+    "play_store": ""
+  },
+  "collection": {
+    "title": "Акции для начинающих",
+    "intro": "На российском рынке акций торгуются несколько сотен бумаг, и каждый начинающий инвестор задаётся вопросом: что купить в первую очередь? Универсального решения нет, но есть ряд советов, которые могут помочь.\n- Покупайте то, что знаете или чьими услугами пользуетесь.\n- В каждой отрасли есть несколько компаний — выбирайте лидеров.\n- Выбирайте известные и крупные компании, ещё лучше — если они платят дивиденды.\n- Не забывайте о диверсификации, пусть каждая выбранная компания занимается разными видами деятельности.\n\nСобрали подборку из акций, которые подходят под обозначенные критерии.",
+    "assets_heading": "Состав коллекции",
+    "legal_text": "Данная информация не является индивидуальной инвестиционной рекомендацией и финансовые инструменты либо операции, упомянутые в ней, могут не соответствовать вашему инвестиционному профилю и инвестиционным целям (ожиданиям). Определение соответствия финансового инструмента либо операции вашим интересам, инвестиционным целям, инвестиционному горизонту и уровню допустимого риска является вашей задачей. АО «Альфа-Банк» не несёт ответственности за возможные убытки в случае совершения операций, либо инвестирования в финансовые инструменты, упомянутые в данной информации, и не рекомендует использовать указанную информацию в качестве единственного источника информации при принятии инвестиционного решения. Банк настоящим информирует вас о возможном наличии конфликта интересов при предложении рассматриваемых в информационных материалах финансовых инструментов. Конфликт интересов возникает в следующих случаях: (i) Банк является эмитентом одного или нескольких рассматриваемых финансовых инструментов (получателем выгоды от распространения финансовых инструментов) и одновременно оказывает брокерские услуги и/или (ii) представляет интересы одновременно нескольких лиц при оказании им брокерских или иных услуг и/или (iii) имеет собственный интерес в совершении операций с финансовым инструментом и одновременно оказывает брокерские услуги и/или (iv) Банк владеет такими же ценными бумагами или намерен совершить с ними сделку и/или (iv) сделки по ценным бумагами будут совершены при участии Банка. Банк предпримет все необходимые и разумные меры для разрешения конфликта интересов в пользу Клиента, а также приложит все усилия по устранению неблагоприятных для Клиента последствий с целью снижения (устранения) риска причинения ущерба интересам Клиента. В целях устранения неблагоприятных последствий конфликта интересов Банк предпримет законные и наиболее адекватные с учётом конкретных обстоятельств меры, руководствуясь принципом приоритета интересов Клиента над своими собственными. Самостоятельно оценивайте возможность заключения сделок с финансовыми инструментами. Предоставленная Банком информация не является побуждением к заключению сделки. Заключение сделок с финансовыми инструментами может порождать значительные финансовые и иные риски. Сделки с финансовыми инструментами предназначены для лиц, которые готовы их принять на себя и в состоянии понести возможные финансовые потери. Перед заключением любой сделки необходимо удостовериться в том, что вы понимаете эти риски, обладаете необходимыми финансовыми и иными ресурсами для исполнения принятых на себя обязательств при любом сценарии развития событий. Ожидаемая доходность является ориентиром, и не является обязательством со стороны Банка. Информация о доходности может расцениваться не иначе как предположения. Результаты инвестиционной деятельности в прошлом не определяют результаты в будущем, а стоимость активов может как увеличиваться, так и уменьшаться. Изменения курса обмена иностранной валюты могут также вызвать дополнительное уменьшение или увеличение стоимости инвестиций. Банк не даёт гарантий или заверений и не принимает какой-либо ответственности в отношении финансовых результатов, которые могут быть получены на основании использования информации выше. Информация, приведённая в данном материале, не является индивидуальной инвестиционной рекомендацией, а упоминаемые в ней финансовые инструменты могут не подходить соответствующему клиенту. Принимая решение о проведении операции на финансовом рынке, необходимо учитывать, что инвестирование в финансовые инструменты несёт в себе риск неполучения ожидаемого дохода, потери части или даже всех инвестированных средств, расходы и возможные дополнительные потери. Следует учитывать, что финансовые инструменты, предназначенные для квалифицированных инвесторов, несут в себе повышенные риски инвестирования и подходят не для каждого лица, являющего квалифицированным инвестором. Инвестиции не являются банковским вкладом, не застрахованы в Государственной корпорации «Агентство по страхованию вкладов» и государство не даёт никаких гарантий сохранности и возврата инвестируемых денежных средств.",
+    "assets": [
+      {
+        "name": "Сбербанк",
+        "ticker": "SBER",
+        "image_url": "",
+        "avatar_color": "#21A038",
+        "deeplink": "alfabank://investments/market_asset_card?title=%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA&id=RU0009029540&subtitle=SBER&url=v1%2Fscreen-details-prefiller%2Fproducts%2Fbrokerage%2FSTOCK%2FRU0009029540&type=STOCK",
+        "price": "321,21 ₽",
+        "change": "−0,30 %",
+        "change_positive": false,
+        "description": "Крупнейший банк страны, имеет высокую рентабельность. Даже в самых сложных экономических ситуациях он развивается и наращивает прибыль, которой делится с инвесторами через выплаты дивидендов. Сбер знает практически каждый житель страны, и у большей части населения есть счёт в этом банке."
+      },
+      {
+        "name": "Т-Технологии",
+        "ticker": "T",
+        "image_url": "",
+        "avatar_color": "#FFDD2D",
+        "deeplink": "alfabank://investments/market_asset_card?title=%D0%A2-%D0%A2%D0%B5%D1%85%D0%BD%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D0%B8&id=RU000A107UL4&subtitle=T&url=v1%2Fscreen-details-prefiller%2Fproducts%2Fbrokerage%2FSTOCK%2FRU000A107UL4&type=STOCK",
+        "price": "294,32 ₽",
+        "change": "−1,17 %",
+        "change_positive": false,
+        "description": "Одна из крупнейших финансовых организаций в стране, она широко известна своим дистанционным обслуживанием. Группа оказывает банковские услуги, а также брокерские и страховые. Помимо этого, Т-Технологии сегодня — один из лидеров отрасли FinTech, с постоянно расширяющимися возможностями и клиентской базой."
+      },
+      {
+        "name": "Яндекс",
+        "ticker": "YDEX",
+        "image_url": "",
+        "avatar_color": "#FF0000",
+        "deeplink": "alfabank://investments/market_asset_card?title=%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81&id=RU000A107T19&subtitle=YDEX&url=v1%2Fscreen-details-prefiller%2Fproducts%2Fbrokerage%2FSTOCK%2FRU000A107T19&type=STOCK",
+        "price": "3 918,00 ₽",
+        "change": "−1,52 %",
+        "change_positive": false,
+        "description": "Крупнейший участник IT-рынка, присутствующий также во многих сегментах. Компания известна не только своей поисковой системой, агрегатором такси и доставки, ещё она развивает маркетплейс, банк, высокие технологии и искусственный интеллект. Яндекс динамично растёт, сохраняя потенциал к дальнейшему росту. Кроме того, компания начала платить дивиденды."
+      },
+      {
+        "name": "Роснефть",
+        "ticker": "ROSN",
+        "image_url": "",
+        "avatar_color": "#E87722",
+        "deeplink": "alfabank://investments/market_asset_card?title=%D0%A0%D0%BE%D1%81%D0%BD%D0%B5%D1%84%D1%82%D1%8C&id=RU000A0J2Q06&subtitle=ROSN&url=v1%2Fscreen-details-prefiller%2Fproducts%2Fbrokerage%2FSTOCK%2FRU000A0J2Q06&type=STOCK",
+        "price": "389,45 ₽",
+        "change": "+0,84 %",
+        "change_positive": true,
+        "description": "Ещё одна крупная нефтяная компания на рынке. В своём секторе Роснефть считается единственной растущей историей благодаря реализации масштабного проекта Восток Ойл, который позволит нарастить добычу нефти и производство высокомаржинальной продукции. Всё это позитивно для будущих дивидендов."
+      },
+      {
+        "name": "ЛУКОЙЛ",
+        "ticker": "LKOH",
+        "image_url": "",
+        "avatar_color": "#F26522",
+        "deeplink": "alfabank://investments/market_asset_card?title=%D0%9B%D1%83%D0%BA%D0%BE%D0%B9%D0%BB&id=RU0009024277&subtitle=LKOH&url=v1%2Fscreen-details-prefiller%2Fproducts%2Fbrokerage%2FSTOCK%2FRU0009024277&type=STOCK",
+        "price": "4 841,50 ₽",
+        "change": "+0,38 %",
+        "change_positive": true,
+        "description": "Одна из крупнейших нефтяных компаний в стране, и её акции — одни из самых популярных среди частных инвесторов. Финансовые результаты ЛУКОЙЛа устойчивы благодаря стабильным ценам на нефть и ослаблению рубля. У компании отсутствует долг, есть запас свободной ликвидности, в том числе в валюте, генерирующий дополнительный доход и позволяющий платить дивиденды."
+      }
+    ]
+  }
+}
+</script>
+
+  <script>
+    /* ================================================================
+       E-002 — Onboarding Checklist v2  (4 steps + finalizer)
+       2026-06-04
+    
+       TODO до QA — заполнить config.json (Костя/owner):
+         1. deeplinks.autopayment — диплинк нативного экрана автопополнения АМ (пока пусто)
+         2. collection.assets[].deeplink — диплинк карточки актива в нативе (есть дефолтные instrument-схемы)
+         3. collection.assets[].image_url — URL логотипа (иначе цветной кружок с буквой)
+         4. deeplinks.app_store / play_store — ссылки на сторы
+         5. Подтвердить имена методов native bridge:
+            closeWebView / openDeeplink / openExternalUrl
+         6. Уточнить: возможен ли крестик в AppBar финализатора?
+            (решение меняет UX TBD блок — раскомментировать кнопку или показать fallback)
+         Также — статья шага 2: owner вставляет HTML в #articleContent (Google Sheets).
+       ================================================================ */
+
+    /* ── Конфиг лендинга (config.json) ───────────────────────────────
+       Единственный источник данных подборки (collection.assets) и
+       диплинков (autopayment / app_store / play_store).
+       Owner/Костя редактируют config.json — не этот файл.
+       Пустые строки ("") = поля ещё не заполнены. ─────────────────── */
+    var CONFIG = null;
+
+    /* HTML-escape для значений из config (защита от инъекций) */
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    /* Безопасно достаём диплинк из CONFIG.deeplinks */
+    function dl(path, fallback) {
+      try { return (CONFIG && CONFIG.deeplinks && CONFIG.deeplinks[path]) || (fallback || ''); }
+      catch (e) { return fallback || ''; }
+    }
+
+    function parseInlineConfig() {
+      try {
+        var el = document.getElementById('e002-config');
+        if (el && el.textContent.trim()) return JSON.parse(el.textContent);
+      } catch (e) { }
+      return null;
+    }
+
+    function loadConfig() {
+      // 1. Встроенный конфиг — синхронно. Работает везде: file://, offline, http.
+      CONFIG = parseInlineConfig();
+      renderCollection();
+      // 2. config.json — опциональный override (прод / GH Pages, только http).
+      //    Позволяет править данные/диплинки без правки HTML. При недоступности
+      //    (file://, offline, нет файла) остаётся встроенный конфиг.
+      try {
+        fetch('https://gist.githubusercontent.com/nsdooris/e918a2670a64991469f41527049d47f4/raw/ghk-7930.json', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (c) { if (c) { CONFIG = c; renderCollection(); } })
+          .catch(function () { });
+      } catch (e) { }
+    }
+
+    /* ── Рендер intro подборки ────────────────────────────────────────
+       intro в config — плоская строка (так же лежит в gist-override).
+       Разбиваем на блоки: строки, начинающиеся с «- / – / —» → пункты
+       маркированного списка; пустая строка разделяет абзацы; остальное —
+       абзацы <p>. Все значения проходят esc(). ─────────────────────── */
+    function renderIntroText(s) {
+      var lines = String(s == null ? '' : s).split('\n');
+      var html = '', inList = false;
+      function closeList() { if (inList) { html += '</ul>'; inList = false; } }
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line) { closeList(); continue; }
+        if (/^[-–—]\s*/.test(line)) {
+          if (!inList) { html += '<ul>'; inList = true; }
+          html += '<li>' + esc(line.replace(/^[-–—]\s*/, '')) + '</li>';
+        } else {
+          closeList();
+          html += '<p>' + esc(line) + '</p>';
+        }
+      }
+      closeList();
+      return html;
+    }
+
+    /* ── Рендер подборки из config (карточки активов шага 3) ──────── */
+    function renderCollection() {
+      var list = document.getElementById('assetList');
+      var intro = document.getElementById('collectionIntro');
+      if (!list) return;
+
+      var col = CONFIG && CONFIG.collection;
+      if (!col || !col.assets || !col.assets.length) {
+        if (intro) intro.innerHTML = '';
+        var h0 = document.getElementById('collectionHeading');
+        if (h0) h0.style.display = 'none';
+        list.innerHTML = '<div class="content-placeholder">Подборка временно недоступна.</div>';
+        return;
+      }
+
+      // Intro: парсим плоскую строку (абзацы + строки «- ...» → список)
+      if (intro) intro.innerHTML = renderIntroText(col.intro || '');
+
+      // Подзаголовок перед карточками («Состав коллекции»)
+      var heading = document.getElementById('collectionHeading');
+      if (heading) {
+        if (col.assets_heading) {
+          heading.textContent = col.assets_heading;
+          heading.style.display = '';
+        } else {
+          heading.style.display = 'none';
+        }
+      }
+
+      var html = '';
+      col.assets.forEach(function (a, i) {
+        var logo = a.image_url
+          ? '<img class="asset-logo" src="' + esc(a.image_url) + '" alt="">'
+          : '<div class="asset-logo" style="background:' + esc(a.avatar_color || '#EF3124') + '">' + esc((a.name || '?').charAt(0)) + '</div>';
+        var chCls = a.change_positive ? 'asset-change--up' : 'asset-change--down';
+        html += '<div class="asset-card">'
+          + '<div class="asset-card__row">'
+          + logo
+          + '<div class="asset-meta">'
+          + '<div class="asset-name">' + esc(a.name) + '</div>'
+          + '<div class="asset-ticker">' + esc(a.ticker) + '</div>'
+          + '</div>'
+          + '<div class="asset-price-col">'
+          + '<div class="asset-price">' + esc(a.price || '') + '</div>'
+          + (a.change ? '<div class="asset-change ' + chCls + '">' + esc(a.change) + '</div>' : '')
+          + '</div>'
+          + '</div>'
+          + (a.description
+            ? '<p class="asset-desc" id="adesc-' + i + '">' + esc(a.description) + '</p>'
+            + '<button class="asset-toggle" id="atoggle-' + i + '" onclick="toggleDesc(' + i + ')">Подробнее</button>'
+            : '')
+          + '<button class="btn btn--buy" style="margin-top:12px;" data-step="3" data-action="asset_click" data-ticker="' + esc(a.ticker) + '">Купить</button>'
+          + '</div>';
+      });
+      list.innerHTML = html;
+
+      // Legal disclaimer
+      var lb = document.getElementById('legalBlock');
+      if (lb) {
+        var lt = col.legal_text;
+        if (lt) {
+          lb.innerHTML = '<div class="legal-block">'
+            + '<p class="legal-text" id="legal-text">' + esc(lt) + '</p>'
+            + '<button class="legal-toggle" id="legal-toggle" onclick="toggleLegal()">Подробнее</button>'
+            + '</div>';
+        } else {
+          lb.innerHTML = '<p class="sub-disclaimer">Не является индивидуальной инвестиционной рекомендацией.</p>';
+        }
+      }
+
+      // Обработчики «Купить» — диплинк на карточку актива из config
+      var btns = list.querySelectorAll('button[data-action="asset_click"]');
+      for (var i = 0; i < btns.length; i++) {
+        (function (asset) {
+          btns[i].addEventListener('click', function () {
+            handleBuyAsset(asset.deeplink || '', asset.ticker);
+          });
+        })(col.assets[i]);
+      }
+    }
+
+    /* ── Вариант лендинга (захардкожен — отдельный URL на вариант) ─── */
+    var variant = 'B';   // treatment-группа; var: 'var2' в GA/YM
+
+    /* ── Tracking: GA + Яндекс.Метрика по канону Майи (var + dimension_N) ─
+       Канон: 04.Sources/prompt-ga-razmetka-analyst.md. Коды GA/YM: 04.Sources/ga_ym.js.
+       TASK_ID = 7930 — номер таски в GA/YM (имя события 7930_*).
+       Внутреннее логическое имя в коде — e002_* (track() переводит префикс).
+       var: 'var2' — фиксировано (этот файл = вариант B).
+       Доп. значения → dimension_N (легенда — в tracking.md).                  */
+    var TASK_ID = '7930';
+    var YM_ID = 96171108;
+    var DIM_MAP = {
+      'data-step': 'dimension_1',   // шаг чек-листа (1–4)
+      'data-action': 'dimension_2',   // действие / цель CTA
+      'ticker': 'dimension_3'    // тикер актива (шаг 3)
+    };
+    function track(ev, props) {
+      try {
+        var name = String(ev).replace(/^e002_/, TASK_ID + '_');   // e002_x → 7930_x
+        var payload = { var: 'var2' };
+        var src = props || {};
+        for (var k in src) {
+          if (!Object.prototype.hasOwnProperty.call(src, k)) continue;
+          var dim = DIM_MAP[k];
+          if (dim) payload[dim] = String(src[k]);   // канон: значения строкой
+        }
+        window.dataLayer = window.dataLayer || [];
+        if (typeof gtag === 'function') { try { gtag('event', name, payload); } catch (e) { } }
+        if (typeof ym === 'function') { try { ym(YM_ID, 'reachGoal', name, payload); } catch (e) { } }
+        console && console.log('[E-002]', name, payload);
+      } catch (e) { }
+    }
+
+    /* ── localStorage ─────────────────────────────────────────────── */
+    var STORAGE_KEY = 'e002_checklist_state_v2';
+    var TOTAL = 4;
+
+    function loadState() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        var r = raw ? JSON.parse(raw) : null;
+        if (r && Array.isArray(r.steps) && r.steps.length === TOTAL && r.initialized) {
+          return r.steps.slice();
+        }
+      } catch (e) { }
+      return null; // первый визит
+    }
+
+    function saveState(s) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ steps: s, initialized: true }));
+      } catch (e) { }
+    }
+
+    var steps;
+    var isFirstVisit = false;
+
+    (function initState() {
+      var saved = loadState();
+      if (saved) {
+        // Повторный визит — восстанавливаем
+        steps = saved;
+      } else {
+        // Первый визит — шаг 1 предзаполнен автоматически
+        steps = [true, false, false, false];
+        isFirstVisit = true;
+        saveState(steps);
+      }
+    })();
+
+    function countDone() { return steps.filter(Boolean).length; }
+
+    /* ── Native bridge ────────────────────────────────────────────── */
+    function hasBridge() { return typeof window.AlfaIntegration !== 'undefined'; }
+
+    function handleClose() {
+      track('e002_webview_close', { steps_completed: countDone() });
+      try {
+        hasBridge() ? window.AlfaIntegration.closeWebView() : history.back();
+      } catch (e) { try { history.back(); } catch (e2) { } }
+    }
+
+    function openDeeplink(url) {
+      if (!url || url.indexOf('[') === 0) {
+        // Placeholder — тихий фейл в debug
+        console && console.warn('[E-002] deeplink placeholder:', url);
+        return;
+      }
+      try {
+        hasBridge() ? window.AlfaIntegration.openDeeplink(url) : window.open(url, '_blank');
+      } catch (e) {
+        try { window.open(url, '_blank'); } catch (e2) { }
+      }
+    }
+
+    function openExternal(url) {
+      if (!url || url.indexOf('[') === 0) {
+        console && console.warn('[E-002] external url placeholder:', url);
+        return;
+      }
+      try {
+        hasBridge() ? window.AlfaIntegration.openExternalUrl(url) : (location.href = url);
+      } catch (e) {
+        try { location.href = url; } catch (e2) { }
+      }
+    }
+
+    /* ── UA ────────────────────────────────────────────────────────── */
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var isAndroid = /Android/.test(navigator.userAgent);
+
+    /* ── SVG-галочка для выполненных шагов ───────────────────────── */
+    var CHECK_SVG = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    /* ── Состояние карточки: completed / active / locked ─────────── */
+    function stepState(i) {
+      if (steps[i]) return 'completed';
+      // Первый false — активный
+      for (var j = 0; j < TOTAL; j++) {
+        if (!steps[j]) return j === i ? 'active' : 'locked';
+      }
+      return 'locked';
+    }
+
+    /* ── Рендер карточек ─────────────────────────────────────────── */
+    function renderCards(animate) {
+      for (var i = 0; i < TOTAL; i++) {
+        var s = stepState(i);
+        var card = document.getElementById('step-card-' + (i + 1));
+        var icon = document.getElementById('step-icon-' + (i + 1));
+        if (!card || !icon) continue;
+
+        // Состояние карточки
+        card.className = 'step-card'
+          + (s === 'active' ? ' step-card--active' : '')
+          + (s === 'completed' ? ' step-card--completed' : '');
+        card.setAttribute('data-state', s);
+
+        // Иконка
+        icon.className = 'step-icon'
+          + (s === 'active' ? ' step-icon--active' : '')
+          + (s === 'completed' ? ' step-icon--completed' : '');
+        icon.innerHTML = s === 'completed' ? CHECK_SVG : String(i + 1);
+
+        // Шаг 1 никогда не показывает CTA (предзаполнен)
+        // Шаги 2-4: CTA скрывается/показывается через CSS .step-card--active
+      }
+    }
+
+    /* ── Прогресс-бар ────────────────────────────────────────────── */
+    var PAGE_HEADERS = [
+      null, // шаг 0 — не используется
+      { title: 'Один шаг уже позади', subtitle: 'До первой сделки — 3 шага' },
+      { title: 'Отличное начало!', subtitle: '' },
+      { title: 'Поздравляем!', subtitle: 'Остался последний шаг' },
+      { title: 'Вы инвестор!', subtitle: '' } // 4/4 — финализатор
+    ];
+
+    function updateProgress(animate) {
+      var fill = document.getElementById('progressFill');
+      var label = document.getElementById('progressLabel');
+      var title = document.getElementById('pageTitle');
+      var sub = document.getElementById('pageSubtitle');
+      if (!fill || !label) return;
+
+      if (!animate) fill.style.transition = 'none';
+      fill.style.width = (countDone() / TOTAL * 100) + '%';
+      label.textContent = 'Шаг ' + countDone() + ' из ' + TOTAL;
+      if (!animate) setTimeout(function () { fill.style.transition = ''; }, 50);
+
+      var h = PAGE_HEADERS[countDone()];
+      if (h && title) title.textContent = h.title;
+      if (h && sub) sub.textContent = h.subtitle || '';
+    }
+
+    /* ── Финализатор ─────────────────────────────────────────────── */
+    function showFinalizer() {
+      var el = document.getElementById('finalizer');
+      if (!el || el.classList.contains('visible')) return;
+
+      track('e002_checklist_complete_all', {});
+
+      el.classList.add('visible');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          el.classList.add('shown');
+          track('e002_finalizer_impression', {});
+        });
+      });
+
+      // Финализатор: одна кнопка — переход в веб-версию Альфа-Инвестиций.
+      // URL берётся из config (deeplinks.web), дефолт — invest.alfabank.ru.
+      var ctas = document.getElementById('finalizerCtas');
+      if (!ctas) return;
+      ctas.innerHTML = '';
+
+      var btnWeb = document.createElement('button');
+      btnWeb.className = 'btn btn--primary';
+      btnWeb.textContent = 'Перейти в Альфа-Инвестиции';
+      btnWeb.setAttribute('data-action', 'open_web');
+      btnWeb.onclick = function () {
+        track('e002_finalizer_click', { 'data-action': 'open_web' });
+        openExternal(dl('web', 'https://invest.alfabank.ru'));
+      };
+      ctas.appendChild(btnWeb);
+
+      /*
+        UX TBD: fallback-кнопка «Вернуться в приложение»
+        Если крестик в AppBar финализатора технически невозможен (Костя) —
+        раскомментировать блок ниже.
+    
+        var btnBack = document.createElement('button');
+        btnBack.className = 'btn btn--secondary';
+        btnBack.textContent = 'Вернуться в приложение';
+        btnBack.setAttribute('data-action', 'close_webview_finalizer');
+        btnBack.onclick = handleFinalizerClose;
+        ctas.appendChild(btnBack);
+      */
+    }
+
+    function handleFinalizerClose() {
+      track('e002_finalizer_close', {});
+      try {
+        hasBridge() ? window.AlfaIntegration.closeWebView() : history.back();
+      } catch (e) { try { history.back(); } catch (e2) { } }
+    }
+
+    /* ── Главный рендер ──────────────────────────────────────────── */
+    function renderAll(animate) {
+      renderCards(animate);
+      updateProgress(animate);
+      if (countDone() === TOTAL) showFinalizer();
+    }
+
+    /* ── Шаг 2 — открытие статьи ─────────────────────────────────── */
+    function openSubScreen(type) {
+      var screenId = type === 'article' ? 'subArticle' : 'subCollection';
+      var screen = document.getElementById(screenId);
+      if (!screen) return;
+
+      if (type === 'collection') renderCollection();
+
+      document.body.style.overflow = 'hidden';
+      screen.classList.add('open');
+      screen.setAttribute('aria-hidden', 'false');
+
+      // history.pushState для корректной работы системной кнопки «Назад»
+      history.pushState({ subScreen: type }, '');
+
+      if (type === 'article') {
+        track('e002_checklist_click_step2', { 'data-step': 2, 'data-action': 'open_article' });
+        track('e002_article_impression', { 'data-step': 2 });
+        watchArticleRead();   // дочитывание лонгрида → e002_article_read
+      } else {
+        track('e002_checklist_click_step3', { 'data-step': 3, 'data-action': 'open_collection' });
+        track('e002_collection_impression', { 'data-step': 3 });
+      }
+    }
+
+    /* ── Дочитывание лонгрида шага 2 (e002_article_read) ────────
+       Срабатывает один раз за открытие: статья доскроллена до конца
+       (или целиком помещается на экран).                                  */
+    var articleReadFired = false;
+    function watchArticleRead() {
+      var sc = document.getElementById('articleContent');
+      if (!sc) return;
+      articleReadFired = false;
+      function fire() {
+        if (articleReadFired) return;
+        articleReadFired = true;
+        sc.removeEventListener('scroll', onScroll);
+        track('e002_article_read', { 'data-step': 2 });
+      }
+      function onScroll() {
+        if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 24) fire();
+      }
+      sc.addEventListener('scroll', onScroll);
+      // Контент короче экрана — считаем прочитанным сразу (после layout)
+      requestAnimationFrame(function () {
+        if (sc.scrollHeight <= sc.clientHeight + 24) fire();
+      });
+    }
+
+    /* ── Закрытие под-экрана (засчёт шага) ───────────────────────── */
+    function closeSubScreen(type, markStep) {
+      var screenId = type === 'article' ? 'subArticle' : 'subCollection';
+      var stepIdx = type === 'article' ? 1 : 2;   // индекс в массиве steps (0-based)
+      var screen = document.getElementById(screenId);
+      if (!screen) return;
+
+      screen.classList.remove('open');
+      screen.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+
+      if (markStep && !steps[stepIdx]) {
+        // Помечаем шаг выполненным ДО событий
+        steps[stepIdx] = true;
+        saveState(steps);
+
+        if (type === 'article') {
+          track('e002_checklist_complete_step2', { 'data-step': 2 });
+        } else {
+          track('e002_checklist_complete_step3', { 'data-step': 3 });
+        }
+
+        renderAll(true);
+      }
+    }
+
+    /* ── Свернуть / Подробнее у описания актива ─────────────────── */
+    function toggleDesc(i) {
+      var desc = document.getElementById('adesc-' + i);
+      var toggle = document.getElementById('atoggle-' + i);
+      if (!desc || !toggle) return;
+      var exp = desc.classList.contains('asset-desc--expanded');
+      desc.classList.toggle('asset-desc--expanded', !exp);
+      toggle.textContent = exp ? 'Подробнее' : 'Свернуть';
+    }
+
+    function toggleLegal() {
+      var text = document.getElementById('legal-text');
+      var toggle = document.getElementById('legal-toggle');
+      if (!text || !toggle) return;
+      var exp = text.classList.contains('legal-text--expanded');
+      text.classList.toggle('legal-text--expanded', !exp);
+      toggle.textContent = exp ? 'Подробнее' : 'Свернуть';
+    }
+
+    /* ── Кнопка «Купить» у актива (шаг 3) ──────────────────────────
+       Решение Lead 2026-06-04: decisions.md строки 49-54
+       Источник событий: tracking.md — событие e002_asset_click
+       ─────────────────────────────────────────────────────────────── */
+    function handleBuyAsset(deeplink, ticker) {
+      track('e002_asset_click', { ticker: ticker });
+
+      // Засчитываем шаг 3 ДО вызова диплинка
+      if (!steps[2]) {
+        steps[2] = true;
+        saveState(steps);
+        track('e002_checklist_complete_step3', { 'data-step': 3 });
+      }
+
+      // Закрываем под-экран (без повторного track completed)
+      var screen = document.getElementById('subCollection');
+      if (screen) {
+        screen.classList.remove('open');
+        screen.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      openDeeplink(deeplink);
+      renderAll(true);
+    }
+
+    /* ── Шаг 4 — автопополнение ────────────────────────────────────── */
+    function handleStep4() {
+      // Помечаем ДО вызова диплинка
+      if (!steps[3]) {
+        steps[3] = true;
+        saveState(steps);
+        track('e002_checklist_click_step4', { 'data-step': 4, 'data-action': 'deeplink_autopayment' });
+        track('e002_checklist_complete_step4', { 'data-step': 4 });
+        renderAll(true);
+      }
+      openDeeplink(dl('autopayment'));
+    }
+
+    /* ── popstate (системная кнопка «Назад» / iOS edge swipe) ──────── */
+    window.addEventListener('popstate', function (e) {
+      if (e.state && e.state.subScreen) {
+        closeSubScreen(e.state.subScreen, true);
+      }
+    });
+
+    /* ── Offline ─────────────────────────────────────────────────── */
+    function updateOffline() {
+      var b = document.getElementById('offlineBanner');
+      if (b) b.classList.toggle('visible', !navigator.onLine);
+    }
+    window.addEventListener('online', updateOffline);
+    window.addEventListener('offline', updateOffline);
+
+    /* ── visibilitychange — возврат из background ─────────────────── */
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') {
+        var saved = loadState();
+        if (saved) { steps = saved; }
+        renderAll(false);
+      }
+    });
+
+    /* ── Init ────────────────────────────────────────────────────── */
+    function init() {
+      document.body.setAttribute('data-experiment', 'e002');
+      document.body.setAttribute('data-variant', variant);
+
+      updateOffline();
+
+      renderAll(false);
+
+      // Загружаем config.json (данные подборки + диплинки)
+      loadConfig();
+
+      // Skeleton → реальный контент
+      document.getElementById('skeleton').style.display = 'none';
+      document.getElementById('contentWrap').classList.add('ready');
+
+      track('e002_checklist_impression', {});
+
+      // Трекинг checklist_complete_step1 — только при первом визите
+      if (isFirstVisit) {
+        track('e002_checklist_complete_step1', {});
+      }
+
+      // Если все шаги уже выполнены (повторный визит) — сразу финализатор
+      if (countDone() === TOTAL) showFinalizer();
+    }
+
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', init)
+      : init();
+  </script>
+</body>
+
+</html>
